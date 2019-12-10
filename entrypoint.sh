@@ -21,8 +21,13 @@ if [[ -z "$COMMENT" ]]; then
   exit 1
 fi
 
+if [[ -z "$REACTION" ]]; then
+  echo "Warning: reaction not set; default to hooray."
+  REACTION="hooray"
+fi
+
 URI="https://api.github.com"
-API_HEADER="Accept: application/vnd.github.v3+json"
+API_HEADER="Accept: application/vnd.github.v3+json,application/vnd.github.squirrel-girl-preview+json"
 AUTH_HEADER="Authorization: token ${GITHUB_TOKEN}"
 
 action=$(jq --raw-output .action "$GITHUB_EVENT_PATH")
@@ -37,13 +42,23 @@ comment_when_approved() {
   if [[ "$rState" == "APPROVED" ]]; then
     echo "Commenting on pull request"
     # https://developer.github.com/v3/pulls/comments/#create-a-comment
-    curl -sSL \
+    body=$(curl -sSL \
       -H "${AUTH_HEADER}" \
       -H "${API_HEADER}" \
       -X POST \
       -H "Content-Type: application/json" \
       -d "{\"body\":\"${COMMENT}\"}" \
-      "${URI}/repos/${GITHUB_REPOSITORY}/issues/${number}/comments"
+      "${URI}/repos/${GITHUB_REPOSITORY}/issues/${number}/comments")
+
+    echo "React to the comment"
+    commentId=$(echo "$body" | jq --raw-output '.id')
+    curl -sSL \
+      -H "${AUTH_HEADER}" \
+      -H "${API_HEADER}" \
+      -X POST \
+      -H "Content-Type: application/json" \
+      -d "{\"content\":\"${REACTION}\"}" \
+      "${URI}/repos/${GITHUB_REPOSITORY}/issues/comments/${commentId}/reactions"
   fi
 }
 
