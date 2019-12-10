@@ -24,7 +24,7 @@ function checkEnvVars() {
     }
 }
 
-async function checkLabels(number, owner, repo) {
+async function checkLabels(octokit, number, owner, repo) {
     const { data: { labels } } = await octokit.pulls.get({
         owner,
         repo,
@@ -36,7 +36,7 @@ async function checkLabels(number, owner, repo) {
         return false;
     }
 
-    for (label of labels) {
+    for (let label of labels) {
         if (triggerLabels.indexOf(label.name) !== -1) {
             return true;
         }
@@ -44,14 +44,9 @@ async function checkLabels(number, owner, repo) {
     return false;
 }
 
-async function commentWhenApproved(number, owner, repo) {
-    const octokit = Octokit({
-        auth: process.env.GITHUB_TOKEN,
-        previews: ["squirrel-girl-preview"],
-    });
-
+async function commentWhenApproved(octokit, number, owner, repo) {
     // Check whether this PR has any of the desired labels
-    const hasTrigger = await checkLabels(number, owner, repo);
+    const hasTrigger = await checkLabels(octokit, number, owner, repo);
     if (!hasTrigger) {
         console.warn("Ignoring pull request without trigger labels");
         process.exit();
@@ -75,7 +70,7 @@ async function commentWhenApproved(number, owner, repo) {
             repo,
             comment_id,
             content: process.env.REACTION
-        })
+        });
     }
 }
 
@@ -85,9 +80,13 @@ async function main() {
 
     const { action, review: { state }, pull_request: { number } } = eventData;
     const [owner, repo] = process.env.GITHUB_REPOSITORY.split("/");
+    const octokit = Octokit({
+        auth: process.env.GITHUB_TOKEN,
+        previews: ["squirrel-girl-preview"],
+    });
 
     if (action === "submitted" && state === "approved") {
-        await commentWhenApproved(number, owner, repo);
+        await commentWhenApproved(octokit, number, owner, repo);
     } else {
         console.warn(`Ignoring event ${action}/${state}`);
     }

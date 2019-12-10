@@ -1,0 +1,18 @@
+{
+    "name": "comment-when-approved-action",
+    "version": "0.0.1",
+    "description": "GitHub action to automatically comment on approved pull requests",
+    "main": "./index.js",
+    "author": "BasisAI",
+    "license": "MIT",
+    "private": true,
+    "scripts": {
+      "lint": "eslint ."
+    },
+    "dependencies": {
+      "@octokit/rest": "^16.33.1"
+    },
+    "devDependencies": {
+      "eslint": "^6.5.1"
+    }
+  }

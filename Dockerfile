@@ -5,7 +5,7 @@ LABEL "com.github.actions.description"="Auto-comment on pull requests once appro
 LABEL "com.github.actions.icon"="git-pull-request"
 LABEL "com.github.actions.color"="gray-dark"
 
-RUN apk add --no-cache bash curl jq
+RUN yarn
 
 ADD index.js /index.js
-CMD ["node", "/index.js"]
+CMD [ "node", "/index.js" ]
