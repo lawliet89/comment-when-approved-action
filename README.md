@@ -19,11 +19,13 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         COMMENT: "Awesome!"
         REACTION: "heart"
+        TRIGGER_LABELS: "some label"
 ```
 
 Environment Variables:
 - `COMMENT`: Required. The content of the comment
 - `REACTION`: Optional. The [github reaction](https://developer.github.com/v3/reactions/#reaction-types) to be added to the comment
+- `TRIGGER_LABELS`: Optional. Only pull requests with these labels will trigger this action. Labels should be separated by a comma.
 
 ## Demo
 <img src="https://github.com/basisai/comment-when-approved-action/raw/master/asset/example.png" width="540">

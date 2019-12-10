@@ -35,6 +35,14 @@ state=$(jq --raw-output .review.state "$GITHUB_EVENT_PATH")
 number=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
 
 comment_when_approved() {
+  # https://developer.github.com/v3/pulls/#get-a-single-pull-request
+  body=$(curl -sSL -H "${AUTH_HEADER}" -H "${API_HEADER}" "${URI}/repos/${GITHUB_REPOSITORY}/pulls/${number}")
+  labels=$(echo "$body" | jq --raw-output '.labels[] | {label: .name}')
+
+  for l in $labels; do
+    label="$(echo "$l" | jq --raw-output '.label')"
+    if $label
+
   # https://developer.github.com/v3/pulls/reviews/#list-reviews-on-a-pull-request
   body=$(curl -sSL -H "${AUTH_HEADER}" -H "${API_HEADER}" "${URI}/repos/${GITHUB_REPOSITORY}/pulls/${number}/reviews?per_page=100")
   rState=$(echo "$body" | jq --raw-output '[.[] | .state][-1]')
