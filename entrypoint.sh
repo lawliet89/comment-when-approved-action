@@ -16,7 +16,7 @@ if [[ -z "$GITHUB_EVENT_PATH" ]]; then
   exit 1
 fi
 
-if [[ -n "$COMMENT" ]]; then
+if [[ -z "$COMMENT" ]]; then
   echo "Set the COMMENT env variable."
   exit 1
 fi
@@ -32,12 +32,7 @@ number=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
 comment_when_approved() {
   # https://developer.github.com/v3/pulls/reviews/#list-reviews-on-a-pull-request
   body=$(curl -sSL -H "${AUTH_HEADER}" -H "${API_HEADER}" "${URI}/repos/${GITHUB_REPOSITORY}/pulls/${number}/reviews?per_page=100")
-  reviews=$(echo "$body" | jq --raw-output '.[] | {state: .state} | @base64')
-
-  $idx=${#reviews[@]}-1
-
-  review="$(echo "$reviews[$idx]" | base64 -d)"
-  rState=$(echo "$review" | jq --raw-output '.state')
+  rState=$(echo "$body" | jq --raw-output '[.[] | .state][-1]')
 
   if [[ "$rState" == "APPROVED" ]]; then
     echo "Commenting on pull request"
@@ -49,8 +44,6 @@ comment_when_approved() {
       -H "Content-Type: application/json" \
       -d "{\"body\":\"${COMMENT}\"}" \
       "${URI}/repos/${GITHUB_REPOSITORY}/issues/${number}/comments"
-
-    break
   fi
 }
 
