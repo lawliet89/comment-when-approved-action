@@ -5,6 +5,8 @@ LABEL "com.github.actions.description"="Auto-comment on pull requests once appro
 LABEL "com.github.actions.icon"="git-pull-request"
 LABEL "com.github.actions.color"="gray-dark"
 
+COPY . .
+
 RUN yarn
 
 ADD index.js /index.js

@@ -1,4 +1,4 @@
-const fs = require("fs");
+const { promises: fs } = require("fs");
 const Octokit = require("@octokit/rest");
 
 function checkEnvVars() {
@@ -53,7 +53,7 @@ async function commentWhenApproved(octokit, number, owner, repo) {
     }
 
     // Get all reviews
-    const reviews = await octokit.pulls.listReviews({ owner, repo, pull_number: number });
+    const { data: reviews } = await octokit.pulls.listReviews({ owner, repo, pull_number: number });
     const lastReview = reviews[reviews.length - 1];
     if (lastReview.state === "APPROVED") {
         // Create comment
@@ -75,13 +75,15 @@ async function commentWhenApproved(octokit, number, owner, repo) {
 }
 
 async function main() {
-    const eventDataStr = await fs.readFile(process.env.GITHUB_EVENT_PATH, "utf8");
+    const eventDataStr = await fs.readFile(process.env.GITHUB_EVENT_PATH, { encoding: "utf8" });
     const eventData = JSON.parse(eventDataStr);
 
     const { action, review: { state }, pull_request: { number } } = eventData;
     const [owner, repo] = process.env.GITHUB_REPOSITORY.split("/");
     const octokit = Octokit({
         auth: process.env.GITHUB_TOKEN,
+        // Need this preview for the reaction API
+        // https://developer.github.com/v3/reactions/#create-reaction-for-an-issue-comment
         previews: ["squirrel-girl-preview"],
     });
 
